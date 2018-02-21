@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+        <link rel="manifest" href="manifest.json">
+        <script src="https://www.gstatic.com/firebasejs/3.6.3/firebase.js"></script>
+    </head> 
+    <script>
+        var config = {
+          apiKey: "AIzaSyDb6IO-GLo9RjlXErZRJdYe6DhjU2GbIHY",
+          authDomain: "realtime4ever-1a17a.firebaseapp.com",
+          databaseURL: "https://realtime4ever-1a17a.firebaseio.com",
+          projectId: "realtime4ever-1a17a",
+          storageBucket: "realtime4ever-1a17a.appspot.com",
+          messagingSenderId: "129529109723"
+        };
+        firebase.initializeApp(config);
+        const messaging = firebase.messaging();
+        messaging.requestPermission()
+          .then(function() {
+              console.log("GRANTED");
+              return messaging.getToken();
+          })
+          .then(function(token) {
+              console.log(token);
+          })
+          .catch(function(err) {
+              console.log('Error Occurred.')
+          });
+          
+          messaging.onMessage(function(payload) {
+              console.log("Message received. ", payload);
+          });
+      
+    </script>
+    <body>
+        
+    </body>
+</html>
