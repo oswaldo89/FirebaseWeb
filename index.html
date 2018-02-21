@@ -1,40 +1,110 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <title></title>
-        <link rel="manifest" href="manifest.json">
-        <script src="https://www.gstatic.com/firebasejs/3.6.3/firebase.js"></script>
-    </head> 
-    <script>
-        var config = {
-          apiKey: "AIzaSyDb6IO-GLo9RjlXErZRJdYe6DhjU2GbIHY",
-          authDomain: "realtime4ever-1a17a.firebaseapp.com",
-          databaseURL: "https://realtime4ever-1a17a.firebaseio.com",
-          projectId: "realtime4ever-1a17a",
-          storageBucket: "realtime4ever-1a17a.appspot.com",
-          messagingSenderId: "129529109723"
-        };
-        firebase.initializeApp(config);
-        const messaging = firebase.messaging();
-        messaging.requestPermission()
-          .then(function() {
-              console.log("GRANTED");
-              return messaging.getToken();
-          })
-          .then(function(token) {
-              console.log(token);
-          })
-          .catch(function(err) {
-              console.log('Error Occurred.')
-          });
-          
-          messaging.onMessage(function(payload) {
-              console.log("Message received. ", payload);
-          });
-      
-    </script>
-    <body>
-        
-    </body>
+
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="manifest" href="manifest.json">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/3.6.3/firebase.js"></script>
+</head>
+<script>
+    var config = {
+        apiKey: "AIzaSyDb6IO-GLo9RjlXErZRJdYe6DhjU2GbIHY",
+        authDomain: "realtime4ever-1a17a.firebaseapp.com",
+        databaseURL: "https://realtime4ever-1a17a.firebaseio.com",
+        projectId: "realtime4ever-1a17a",
+        storageBucket: "realtime4ever-1a17a.appspot.com",
+        messagingSenderId: "129529109723"
+    };
+    firebase.initializeApp(config);
+
+    const messaging = firebase.messaging();
+    messaging.requestPermission().then(function() {
+        console.log("GRANTED");
+        return messaging.getToken();
+    }).then(function(token) {
+        console.log(token);
+    }).catch(function(err) {
+        console.log('Ocurrio un error.')
+    });
+
+    messaging.onMessage(function(payload) {
+        console.log("Mensaje recibido: ", payload);
+    });
+
+    // Registro de nuevos usuarios en firebase
+    $(document).on("click", "#registrar", function() {
+        firebase.auth().createUserWithEmailAndPassword($("#user_register").val(), $("#password_register").val()).then(function(user) {
+            user.sendEmailVerification().then(function() {
+                console.log("Se envio un correo de verificacion.");
+            });
+        }).catch(function(error) {
+            var errorCode = error.code;
+            var errorMessage = error.message;
+            alert(errorMessage)
+        });
+    });
+
+    //Iniciar sesion con un usuario registrado en firebase
+    $(document).on("click", "#entrar", function() {
+        firebase.auth().signInWithEmailAndPassword($("#user").val(), $("#password").val()).then(function(user) {
+            if (!user.emailVerified) {
+                alert('Verifica tu direccion de correo electrónico.');
+            } else {
+                console.log('login correcto');
+                connect(user.uid);
+            }
+        }).catch(function(error) {
+            var errorCode = error.code;
+            var errorMessage = error.message;
+            alert(errorMessage)
+        });
+    });
+
+    firebase.auth().onAuthStateChanged(function(user) {
+        if (user != null)
+            connect(user.uid);
+    });
+
+    function connect() {
+        if (firebase.auth().currentUser != null) {
+            const uid = firebase.auth().currentUser.uid
+            const userStatusDatabaseRef = firebase.database().ref(`/status/${uid}`);
+            const isOfflineForDatabase = {
+                state: "offline",
+                last_changed: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            const isOnlineForDatabase = {
+                state: "online",
+                last_changed: firebase.database.ServerValue.TIMESTAMP
+            };
+            firebase.database().ref(".info/connected").on("value", function(snapshot) {
+                if (snapshot.val() == false) {
+                    return;
+                };
+                userStatusDatabaseRef.onDisconnect().set(isOfflineForDatabase).then(function() {
+                    userStatusDatabaseRef.set(isOnlineForDatabase);
+                });
+            });
+        }
+    }
+</script>
+
+<body>
+
+    <input type="text" id="user_register" placeholder="Usuario" value="oswaldo.gh89@gmail.com"><br>
+    <input type="password" id="password_register" placeholder="Contraseña" value="montana89"><br>
+    <button type="button" id="registrar">Registrar</button>
+
+
+    <hr>
+
+    <input type="text" id="user" placeholder="Usuario" value="oswaldo.gh89@gmail.com"><br>
+    <input type="password" id="password" placeholder="Contraseña" value="montana89"><br>
+    <button type="button" id="entrar">Entrar</button>
+
+</body>
+
 </html>
