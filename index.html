@@ -66,6 +66,25 @@
         if (user != null)
             connect(user.uid);
     });
+    
+    var ref = firebase.database().ref('/status/');
+    
+    //se ejecuta cuando un registro es modificado.
+    ref.on('child_changed', function(data) {
+        //console.log(data.val());
+        getOnlineUsers();
+    });
+    
+    
+    function getOnlineUsers(){
+        firebase.database().ref('/status/').orderByChild('state').equalTo("online").once('value').then(function(snapshot) {
+          //console.log(snapshot.val());
+          $("#users_online").empty();
+          
+          var onlineUsers = snapshot.val() == null ? 0 : Object.keys(snapshot.val()).length;
+          $("#users_online").append(onlineUsers);
+        });
+    }
 
     function connect() {
         if (firebase.auth().currentUser != null) {
@@ -96,14 +115,18 @@
 
     <input type="text" id="user_register" placeholder="Usuario" value="oswaldo.gh89@gmail.com"><br>
     <input type="password" id="password_register" placeholder="Contraseña" value="montana89"><br>
-    <button type="button" id="registrar">Registrar</button>
+    <button type="button" id="registrar">Registrar</button><br>
 
 
     <hr>
 
     <input type="text" id="user" placeholder="Usuario" value="oswaldo.gh89@gmail.com"><br>
     <input type="password" id="password" placeholder="Contraseña" value="montana89"><br>
-    <button type="button" id="entrar">Entrar</button>
+    <button type="button" id="entrar">Entrar</button><br>
+    
+    <hr>
+    
+    usuarios en linea: <b id="users_online"></b>
 
 </body>
 
