@@ -10,7 +10,6 @@ firebase.initializeApp(config);
 
 const messaging = firebase.messaging();
 messaging.requestPermission().then(function() {
-    console.log("GRANTED");
     return messaging.getToken();
 }).then(function(token) {
     console.log(token);
@@ -18,6 +17,7 @@ messaging.requestPermission().then(function() {
     console.log('Ocurrio un error.')
 });
 
+//listener de notificaciones.
 messaging.onMessage(function(payload) {
     console.log("Mensaje recibido: ", payload);
 });
@@ -52,27 +52,24 @@ $(document).on("click", "#entrar", function() {
     });
 });
 
+//Cuando el status de algun usuario pasa de conectado/desconectado
 firebase.auth().onAuthStateChanged(function(user) {
     if (user != null)
         connect(user.uid);
 });
 
-var ref = firebase.database().ref('/status/');
-
 //se ejecuta cuando un registro es modificado.
+var ref = firebase.database().ref('/status/');
 ref.on('child_changed', function(data) {
-    //console.log(data.val());
     getOnlineUsers();
     $("#txt_user").val(firebase.auth().currentUser.email);
 });
 
-
+//obtiene solo los usuarios online
 function getOnlineUsers(){
     firebase.database().ref('/status/').orderByChild('state').equalTo("online").once('value').then(function(snapshot) {
-      //console.log(snapshot.val());
-      $("#users_online").empty();
-      
       var onlineUsers = snapshot.val() == null ? 0 : Object.keys(snapshot.val()).length;
+      $("#users_online").empty();
       $("#users_online").append(onlineUsers);
     });
 }
