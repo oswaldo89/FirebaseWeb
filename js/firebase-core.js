@@ -37,12 +37,13 @@ $(document).on("click", "#registrar", function() {
 
 //Iniciar sesion con un usuario registrado en firebase
 $(document).on("click", "#entrar", function() {
-    firebase.auth().signInWithEmailAndPassword($("#user").val(), $("#password").val()).then(function(user) {
+    firebase.auth().signInWithEmailAndPassword($("#txt_user").val(), $("#password").val()).then(function(user) {
         if (!user.emailVerified) {
             alert('Verifica tu direccion de correo electrónico.');
         } else {
             console.log('login correcto');
             connect(user.uid);
+            getOnlineUsers();
         }
     }).catch(function(error) {
         var errorCode = error.code;
